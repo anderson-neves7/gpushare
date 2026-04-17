@@ -1,68 +1,68 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '@/lib/api';
-import { gpus } from '@/lib/mockData';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
+import { gpus } from "@/lib/mockData";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Upload } from 'lucide-react';
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Upload } from "lucide-react";
 
 export default function SubmitJob() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    name: '',
-    gpu: '',
-    maxRuntime: '4',
-    priority: 'normal',
+    name: "",
+    gpu: "",
+    maxRuntime: "4",
+    priority: "normal",
   });
 
   const [file, setFile] = useState(null);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   const updateField = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-    setMessage('');
+    setMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!file) {
-      setMessage('Please upload a Python script.');
+      setMessage("Please upload a Python script.");
       return;
     }
 
     try {
-      // Read the .py file into a string
+      // Read .py file into a string
       const codeText = await file.text();
 
-      // For now, always target the RTX 2060 (id = 1 in backend)
-      // If you later want to use the selected GPU, replace 1 with Number(form.gpu)
+      // IMPORTANT:
+      // Your backend requires JSON: { type, code, gpu_id }
       const payload = {
-        type: 'gpu',
+        type: "gpu",
         code: codeText,
-        gpu_id: 1, // RTX 2060
+        gpu_id: 1, // RTX 2060 (your only real GPU)
       };
 
-      await api.post('/jobs/submit_job', payload);
+      await api.post("/jobs/submit_job", payload);
 
-      setMessage('Job submitted successfully!');
-      setTimeout(() => navigate('/compute'), 1000);
+      setMessage("Job submitted successfully!");
+      setTimeout(() => navigate("/compute"), 1000);
     } catch (err) {
-      console.error(err);
-      setMessage('Failed to submit job.');
+      console.error("Submit job error:", err);
+      setMessage("Failed to submit job.");
     }
   };
 
@@ -70,7 +70,7 @@ export default function SubmitJob() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
         type="button"
-        onClick={() => navigate('/compute')}
+        onClick={() => navigate("/compute")}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -80,7 +80,7 @@ export default function SubmitJob() {
       <h1 className="text-2xl sm:text-3xl font-bold mb-1">Submit compute job</h1>
 
       <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-        Pick a GPU tier that matches your framework. ROCm, oneAPI, and CUDA-backed images are not interchangeable.
+        Upload a Python script to run on your rented GPU.
       </p>
 
       <Card className="border-border/50">
@@ -89,9 +89,9 @@ export default function SubmitJob() {
             <div className="space-y-2">
               <Label>Job name</Label>
               <Input
-                placeholder="e.g., Fine-tune LLaMA 3"
+                placeholder="e.g., Hello GPU"
                 value={form.name}
-                onChange={(e) => updateField('name', e.target.value)}
+                onChange={(e) => updateField("name", e.target.value)}
                 className="bg-muted/50 border-border/50"
               />
             </div>
@@ -100,7 +100,7 @@ export default function SubmitJob() {
               <Label>Select GPU</Label>
               <Select
                 value={form.gpu}
-                onValueChange={(v) => updateField('gpu', v)}
+                onValueChange={(v) => updateField("gpu", v)}
               >
                 <SelectTrigger className="bg-muted/50 border-border/50">
                   <SelectValue placeholder="Choose a GPU" />
@@ -150,7 +150,7 @@ export default function SubmitJob() {
                   min={1}
                   max={168}
                   value={form.maxRuntime}
-                  onChange={(e) => updateField('maxRuntime', e.target.value)}
+                  onChange={(e) => updateField("maxRuntime", e.target.value)}
                   className="bg-muted/50 border-border/50"
                 />
               </div>
@@ -159,7 +159,7 @@ export default function SubmitJob() {
                 <Label>Priority</Label>
                 <Select
                   value={form.priority}
-                  onValueChange={(v) => updateField('priority', v)}
+                  onValueChange={(v) => updateField("priority", v)}
                 >
                   <SelectTrigger className="bg-muted/50 border-border/50">
                     <SelectValue />
@@ -177,7 +177,7 @@ export default function SubmitJob() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/compute')}
+                onClick={() => navigate("/compute")}
                 className="flex-1"
               >
                 Cancel
@@ -187,11 +187,7 @@ export default function SubmitJob() {
               </Button>
             </div>
 
-            {message && (
-              <p className="text-sm mt-3">
-                {message}
-              </p>
-            )}
+            {message && <p className="text-sm mt-3">{message}</p>}
           </form>
         </CardContent>
       </Card>
