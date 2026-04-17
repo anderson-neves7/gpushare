@@ -8,9 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Zap, HardDrive, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
-import { fakeGpus } from '@/lib/fakeGpus';
 
 export default function Marketplace() {
   const [gpus, setGpus] = useState([]);
@@ -28,26 +27,11 @@ export default function Marketplace() {
       name: g.name,
       vram: g.vram_gb,
       price: g.price_per_hour,
-      location: g.location || 'Local region',
-      provider: g.provider || 'Backend provider',
+      status: g.status,
+      provider: `Provider ${g.provider_id}`,
+      location: 'Local region',
       availability: g.status === 'available' ? 'available' : 'limited',
-      cores: g.cores,
       source: 'backend',
-    };
-  }
-
-  function mapFakeGpu(g) {
-    return {
-      id: g.id,
-      name: g.name,
-      vram: g.vram_gb || g.vram,
-      price: g.price_per_hour || g.price,
-      location: g.location || 'Demo region',
-      provider: g.provider || 'Demo provider',
-      availability: g.status || 'unavailable',
-      cores: g.cores,
-      image: g.image,
-      source: 'fake',
     };
   }
 
@@ -58,14 +42,11 @@ export default function Marketplace() {
       try {
         const res = await api.get('/gpus/');
         const backend = res.data.map(mapBackendGpu);
-        const fake = fakeGpus.map(mapFakeGpu);
 
-        const combined = [...backend, ...fake];
+        setGpus(backend);
+        setFiltered(backend);
 
-        setGpus(combined);
-        setFiltered(combined);
-
-        const maxPriceFound = Math.max(...combined.map((g) => g.price || 0));
+        const maxPriceFound = Math.max(...backend.map((g) => g.price || 0));
         const ceiling = Math.max(5, Math.ceil(maxPriceFound * 4) / 4);
 
         setPriceCeiling(ceiling);
@@ -105,7 +86,7 @@ export default function Marketplace() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <PageHeader
           title="GPU marketplace"
-          description="Browse backend and demo GPUs."
+          description="Browse available GPUs from providers."
         >
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             <RefreshCw className="w-4 h-4" />

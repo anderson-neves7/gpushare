@@ -1,48 +1,30 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { gpus as mockGpus } from '@/lib/mockData';
-import { fakeGpus } from '@/lib/fakeGpus';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Clock, Calendar } from 'lucide-react';
 import PageWrapper from '@/components/PageWrapper';
+import { api } from '@/lib/api';
 
 export default function RentGPU() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
 
-  // 1) Prefer GPU passed via router state (from GPUDetails / Marketplace)
-  const gpuFromState = location.state?.gpu;
-
-  // 2) Fallback: fake GPUs
-  const gpuFromFake = fakeGpus.find((g) => String(g.id) === String(id));
-
-  // 3) Fallback: mock GPUs
-  const gpuFromMock = mockGpus.find((g) => String(g.id) === String(id));
-
-  const gpu = gpuFromState || gpuFromFake || gpuFromMock;
+  const gpu = location.state?.gpu;
 
   const [hours, setHours] = useState(1);
   const [startTime, setStartTime] = useState('now');
+  const [message, setMessage] = useState('');
 
   if (!gpu) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-24 text-center">
         <p className="text-muted-foreground">GPU not found.</p>
-        <Link
-          to="/marketplace"
-          className="text-primary hover:underline text-sm mt-2 inline-block"
-        >
+        <Link to="/marketplace" className="text-primary hover:underline text-sm mt-2 inline-block">
           Back to marketplace
         </Link>
       </div>
@@ -51,6 +33,18 @@ export default function RentGPU() {
 
   const price = gpu.price ?? gpu.price_per_hour ?? 0;
   const total = (price * hours).toFixed(2);
+
+  async function handleConfirm() {
+    try {
+      await api.post('/rentals/request', { gpu_id: gpu.id });
+
+      setMessage('Rental request submitted!');
+      setTimeout(() => navigate('/compute'), 800);
+    } catch (err) {
+      console.error(err);
+      setMessage('Failed to submit rental request.');
+    }
+  }
 
   return (
     <PageWrapper>
@@ -65,14 +59,6 @@ export default function RentGPU() {
         </button>
 
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Rent {gpu.name}</h1>
-        <p className="text-muted-foreground mb-4">
-          Configure your rental and confirm the window.
-        </p>
-
-        <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-          Billing in this demo is illustrative. In production you would see taxes, platform fees, and any minimum
-          commitment from the provider.
-        </p>
 
         <div className="grid md:grid-cols-5 gap-8">
           <div className="md:col-span-3 space-y-6">
@@ -88,14 +74,9 @@ export default function RentGPU() {
                     min={1}
                     max={720}
                     value={hours}
-                    onChange={(e) =>
-                      setHours(Math.max(1, parseInt(e.target.value, 10) || 1))
-                    }
+                    onChange={(e) => setHours(Math.max(1, parseInt(e.target.value, 10) || 1))}
                     className="bg-muted/50 border-border/50"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Minimum 1 hour, maximum 720 hours (30 days)
-                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -137,9 +118,7 @@ export default function RentGPU() {
 
                   <div className="flex justify-between py-2 border-b border-border/30">
                     <span className="text-muted-foreground">Duration</span>
-                    <span>
-                      {hours} hour{hours > 1 ? 's' : ''}
-                    </span>
+                    <span>{hours} hour{hours > 1 ? 's' : ''}</span>
                   </div>
 
                   <div className="flex justify-between py-2 border-b border-border/30">
@@ -157,15 +136,11 @@ export default function RentGPU() {
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => navigate('/dashboard')}
-                  className="w-full h-12 text-base"
-                >
+                <Button onClick={handleConfirm} className="w-full h-12 text-base">
                   Confirm rental
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  You can cancel anytime. Billed hourly.
-                </p>
+
+                {message && <p className="text-sm text-center mt-2">{message}</p>}
               </CardContent>
             </Card>
           </div>
