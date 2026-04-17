@@ -6,6 +6,7 @@ from routes.routes_gpus import router as gpus_router
 from routes.routes_rentals import router as rentals_router
 from routes.routes_jobs import router as jobs_router
 from routes.routes_compute import router as compute_router
+
 from database import init_db
 
 app = FastAPI(
@@ -22,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register all routers
 app.include_router(auth_router)
 app.include_router(gpus_router)
 app.include_router(rentals_router)
@@ -34,8 +36,8 @@ def on_startup():
     init_db()
 
 
+# Custom OpenAPI with JWT support
 original_openapi = app.openapi
-
 
 def custom_openapi():
     if app.openapi_schema:
@@ -57,6 +59,5 @@ def custom_openapi():
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
-
 
 app.openapi = custom_openapi
