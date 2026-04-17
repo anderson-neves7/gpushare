@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/api';
-import { gpus } from '../lib/mockData';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Card, CardContent } from '../components/ui/card';
+import { api } from '@/lib/api';
+import { gpus } from '@/lib/mockData';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Upload } from 'lucide-react';
 
 export default function SubmitJob() {
@@ -20,41 +26,43 @@ export default function SubmitJob() {
   });
 
   const [file, setFile] = useState(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
 
   const updateField = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    setMessage('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!file) {
-      setMessage("Please upload a Python script.");
+      setMessage('Please upload a Python script.');
       return;
     }
 
     try {
-      const formData = new FormData();
-      formData.append("job_name", form.name);
-      formData.append("priority", form.priority);
-      formData.append("max_runtime", Number(form.maxRuntime));
-      formData.append("script", file);
-      formData.append("gpu_id", 1); // RTX 2060
+      // Read the .py file into a string
+      const codeText = await file.text();
 
-      await api.post("/jobs/submit_job", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // For now, always target the RTX 2060 (id = 1 in backend)
+      // If you later want to use the selected GPU, replace 1 with Number(form.gpu)
+      const payload = {
+        type: 'gpu',
+        code: codeText,
+        gpu_id: 1, // RTX 2060
+      };
 
-      setMessage("Job submitted successfully!");
-      setTimeout(() => navigate("/compute"), 1000);
+      await api.post('/jobs/submit_job', payload);
 
+      setMessage('Job submitted successfully!');
+      setTimeout(() => navigate('/compute'), 1000);
     } catch (err) {
       console.error(err);
-      setMessage("Failed to submit job.");
+      setMessage('Failed to submit job.');
     }
   };
 
@@ -78,7 +86,6 @@ export default function SubmitJob() {
       <Card className="border-border/50">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
-
             <div className="space-y-2">
               <Label>Job name</Label>
               <Input
@@ -91,13 +98,16 @@ export default function SubmitJob() {
 
             <div className="space-y-2">
               <Label>Select GPU</Label>
-              <Select value={form.gpu} onValueChange={(v) => updateField('gpu', v)}>
+              <Select
+                value={form.gpu}
+                onValueChange={(v) => updateField('gpu', v)}
+              >
                 <SelectTrigger className="bg-muted/50 border-border/50">
                   <SelectValue placeholder="Choose a GPU" />
                 </SelectTrigger>
                 <SelectContent>
                   {gpus.map((gpu) => (
-                    <SelectItem key={gpu.id} value={gpu.id}>
+                    <SelectItem key={gpu.id} value={String(gpu.id)}>
                       {gpu.name} (${gpu.price.toFixed(2)}/hr)
                     </SelectItem>
                   ))}
@@ -110,8 +120,12 @@ export default function SubmitJob() {
 
               <div className="border-2 border-dashed border-border/50 rounded-xl p-8 text-center hover:border-primary/30 transition-colors">
                 <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground mb-1">Upload your script</p>
-                <p className="text-xs text-muted-foreground mb-3">Supports .py files</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Upload your script
+                </p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Supports .py files
+                </p>
 
                 <input
                   type="file"
@@ -143,7 +157,10 @@ export default function SubmitJob() {
 
               <div className="space-y-2">
                 <Label>Priority</Label>
-                <Select value={form.priority} onValueChange={(v) => updateField('priority', v)}>
+                <Select
+                  value={form.priority}
+                  onValueChange={(v) => updateField('priority', v)}
+                >
                   <SelectTrigger className="bg-muted/50 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
@@ -157,7 +174,12 @@ export default function SubmitJob() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => navigate('/compute')} className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/compute')}
+                className="flex-1"
+              >
                 Cancel
               </Button>
               <Button type="submit" className="flex-1">
@@ -166,9 +188,10 @@ export default function SubmitJob() {
             </div>
 
             {message && (
-              <p className="text-sm text-green-600 mt-3">{message}</p>
+              <p className="text-sm mt-3">
+                {message}
+              </p>
             )}
-
           </form>
         </CardContent>
       </Card>
