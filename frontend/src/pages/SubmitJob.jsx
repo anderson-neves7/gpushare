@@ -45,7 +45,7 @@ export default function SubmitJob() {
       formData.append("max_runtime", form.maxRuntime);
       formData.append("script", file);
 
-      const response = await api.post("/jobs/submit", formData, {
+      const response = await api.post("/jobs/submit_job", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
