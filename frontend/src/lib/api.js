@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'http://10.0.0.176:8000',   // <-- use your Zephyrus backend IP
+  baseURL: 'http://10.187.180.41:8000',   // <-- use your Zephyrus backend IP
 });
 
 // Automatically attach JWT token to every request
