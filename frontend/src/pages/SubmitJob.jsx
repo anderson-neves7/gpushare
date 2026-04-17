@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Upload } from 'lucide-react';
-import PageWrapper from '@/components/PageWrapper';
+import AppLayout from '@/components/AppLayout';
 
 export default function SubmitJob() {
   const navigate = useNavigate();
@@ -42,8 +42,9 @@ export default function SubmitJob() {
       const formData = new FormData();
       formData.append("job_name", form.name);
       formData.append("priority", form.priority);
-      formData.append("max_runtime", form.maxRuntime);
+      formData.append("max_runtime", Number(form.maxRuntime)); // MUST be number
       formData.append("script", file);
+      formData.append("gpu_id", 1); // REQUIRED for GPU jobs (RTX 2060)
 
       const response = await api.post("/jobs/submit_job", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -60,7 +61,7 @@ export default function SubmitJob() {
   };
 
   return (
-    <PageWrapper>
+    <AppLayout>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
           type="button"
@@ -175,6 +176,6 @@ export default function SubmitJob() {
           </CardContent>
         </Card>
       </div>
-    </PageWrapper>
+    </AppLayout>
   );
 }
