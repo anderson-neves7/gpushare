@@ -24,7 +24,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     role = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = DateTime = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     compute_gpus = relationship(
         "ComputeGPU",
@@ -61,6 +61,9 @@ class ComputeGPU(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     vram_gb = Column(Integer, nullable=False)
+
+    # NEW: automatic pricing based on VRAM (full dollar amounts)
+    price_per_hour = Column(Integer, nullable=False)
 
     provider_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     renter_id = Column(Integer, ForeignKey("users.id"), nullable=True)

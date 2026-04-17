@@ -11,17 +11,39 @@ from schemas import GPUCreate, GPUOut
 router = APIRouter(prefix="/gpus", tags=["GPUs"])
 
 
+def calculate_price_per_hour(vram_gb: int) -> int:
+    """
+    Automatic pricing based on VRAM (full dollar amounts only):
+
+    - ≤ 6 GB   -> $1/hr
+    - 7–12 GB  -> $2/hr
+    - 13–24 GB -> $3/hr
+    - 25+ GB   -> $4/hr
+    """
+    if vram_gb <= 6:
+        return 1
+    elif vram_gb <= 12:
+        return 2
+    elif vram_gb <= 24:
+        return 3
+    else:
+        return 4
+
+
 @router.post("/", response_model=GPUOut)
 def create_gpu(
     gpu_in: GPUCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("provider")),
 ):
+    price = calculate_price_per_hour(gpu_in.vram)
+
     gpu = ComputeGPU(
         provider_id=current_user.id,
         renter_id=None,
         name=gpu_in.model,
         vram_gb=gpu_in.vram,
+        price_per_hour=price,
         status="available",
     )
 

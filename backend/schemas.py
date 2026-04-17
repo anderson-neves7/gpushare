@@ -28,12 +28,14 @@ class UserOut(UserBase):
 class GPUCreate(BaseModel):
     model: str
     vram: int
+    # NOTE: no price here – backend calculates price_per_hour automatically
 
 
 class GPUOut(BaseModel):
     id: int
     name: str
     vram_gb: int
+    price_per_hour: int
     provider_id: int
     renter_id: Optional[int] = None
     status: str

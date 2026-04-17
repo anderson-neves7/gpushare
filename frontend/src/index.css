@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --background: 252 10% 7%;
+    --foreground: 42 6% 96%;
+    --card: 0 0% 100% / 0.04;
+    --card-foreground: 220 15% 90%;
+    --popover: 44 4% 97%;
+    --popover-foreground: 24 11% 16%;
+    --card-muted-foreground: 220 10% 72%;
+    --primary: 262 52% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 6% 92%;
+    --secondary-foreground: 24 10% 20%;
+    --muted: 35 10% 22%;
+    --muted-foreground: 40 8% 68%;
+    --accent: 265 45% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 38 8% 86%;
+    --input: 38 7% 82%;
+    --ring: 262 52% 52%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+  }
+}
+
+@layer utilities {
+  .surface-paper {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border) / 0.55);
+  }
+
+  [data-card] .text-muted-foreground {
+    color: hsl(var(--card-muted-foreground));
+  }
+
+  .surface-paper .text-muted-foreground {
+    color: hsl(var(--card-muted-foreground));
+  }
+
+  .bg-grid-fine {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black 25%, transparent 72%);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* --------------------------------------------------------- */
+/* ⭐ FIX: readable text inside white input boxes (Tailwind)  */
+/* --------------------------------------------------------- */
+@layer base {
+
+  input[type="text"],
+  input[type="number"] {
+    @apply text-black bg-white border border-gray-300 px-3 py-2 rounded-md;
+  }
+
+  input::placeholder {
+    @apply text-gray-500;
+  }
+}
